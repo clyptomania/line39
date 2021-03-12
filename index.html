@@ -127,7 +127,8 @@ let debug = {
 let rAF = null;
 
 
-
+// TODO: The points for each vertical line are calculated here.
+// How can two or more x and y coordinates be implemented?
 function updateLine(line,homeX){
   let point, desiredX, desiredY, desiredBX, desiredBY, desiredH, desiredHB, desiredForce, desiredForceB, desiredAngle, desiredAngleB, hvx, hvy, mvx, mvy, x, y, homeY, vx, vy;
   let radius = config.radius;
@@ -193,6 +194,7 @@ function timer(){
      ctx.fillText(fpsObj.getFPS(),50,50);
   }
   let line, xc,yc, cur, curX, curY, next, dot;
+  // In the following loop every line is drawn using some sort of bezier-technique
   for(var i = lines.length - 1; i >= 0; i--){
     
     line = updateLine(lines[i],homesX[i]);
@@ -200,6 +202,7 @@ function timer(){
     ctx.beginPath();
     ctx.strokeStyle = 'white';
     ctx.moveTo(line[line.length - 1].x,line[line.length - 1].y);
+    // In this loop some sort of bezier-curve is drawn between two points
     for(var j = line.length - 2; j > 1; j--){
       cur  = line[j];
       curX = cur.x;
@@ -214,6 +217,7 @@ function timer(){
     
     ctx.quadraticCurveTo(line[j].x,line[j].y, line[j - 1].x, line[j - 1].y);
     ctx.stroke();
+    // In the following if-block every point is drawn (if the user wishes to)
     if(config.showPoints) {
       for(j = line.length - 1; j >= 0; j--){
         dot =  line[j];
@@ -242,6 +246,7 @@ function updateX(){
     cancelAnimationFrame(rAF);
     rAF = null;
   }
+  // Amount of "padding"-pixels left and right
   calcPad = (W * config.padding) / 100;
   homesX = [];
   for(var i = config.nLines; i >= 0; i--){
@@ -282,7 +287,7 @@ function init(){
 }
 
 
-
+// TODO: WTH is debounce? And what does "_." mean?
 const debouncedInit = _.debounce(init, 200)
 const debouncedUpdateX = _.debounce(updateX, 200)
 
