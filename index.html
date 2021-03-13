@@ -34,10 +34,15 @@ var exampleSocket = new WebSocket("ws://127.0.0.1:8123/kinect_position");
 exampleSocket.onmessage = function (event) {
     console.log(event.data.split(","));
     const [i, ax, ay, bx, by] = event.data.split(",");
-    agent.x = ax;
-    agent.y = ay;
-    agent.bx = bx;
-    agent.by = by;
+    agentA = {
+      x: ax,
+      y: ay
+    }
+    agentB = {
+      x: bx,
+      y: by
+    }
+    agents = [agentA, agentB];
     console.log("Done");
 }
 
@@ -75,10 +80,20 @@ const fpsHelper = function(onSecond){
     }
 }
 
-const agent = {
+// const agent = {
+//     x: W / 1,
+//     y: H / 1
+// }
+agents = [
+{
+    x: W / 1,
+    y: H / 1
+},
+{
     x: W / 1,
     y: H / 1
 }
+];
 
 
 const config = {
@@ -130,46 +145,53 @@ let rAF = null;
 // TODO: The points for each vertical line are calculated here.
 // How can two or more x and y coordinates be implemented?
 function updateLine(line,homeX){
-  let point, desiredX, desiredY, desiredBX, desiredBY, desiredH, desiredHB, desiredForce, desiredForceB, desiredAngle, desiredAngleB, hvx, hvy, mvx, mvy, x, y, homeY, vx, vy;
+  let point, desiredX, desiredY, desiredH, desiredForce, desiredAngle, hvx, hvy, mvx, mvy, x, y, homeY;
   let radius = config.radius;
   let maxSpeed = config.maxSpeed;
   for(var j = line.length - 1; j >= 0; j--){
-    point = line[j];
-    x = point.x;
-    y = point.y;
-    hvx = 0, hvy = 0;
-    
-    homeY = homesY[j];
-    if(x !== homeX || y !== homeY) {
-      desiredX = homeX - x;
-      desiredY = homeY - y;
-      desiredH = PY(desiredX,desiredY);
-      desiredForce = Math.max(desiredH * 0.2,1); // returns the largest number given as input parameters
-      desiredAngle = Math.atan2(desiredY,desiredX); // math.atan2 returns the arctangent of the quotient of its arguments, as a numeric value between PI and -PI radians
-      hvx = desiredForce * Math.cos(desiredAngle);
-      hvy = desiredForce * Math.sin(desiredAngle);
+    let vxList = [];
+    let vyList = [];
+    for(let i = 0; i<agents.length; i++) {
+      let agent = agents[i];
+      let vx, vy;
+      point = line[j];
+      x = point.x;
+      y = point.y;
+      hvx = 0, hvy = 0;
+      
+      homeY = homesY[j];
+      if(x !== homeX || y !== homeY) {
+        desiredX = homeX - x;
+        desiredY = homeY - y;
+        desiredH = PY(desiredX,desiredY);
+        desiredForce = Math.max(desiredH * 0.2,1); // returns the largest number given as input parameters
+        desiredAngle = Math.atan2(desiredY,desiredX); // math.atan2 returns the arctangent of the quotient of its arguments, as a numeric value between PI and -PI radians
+        hvx = desiredForce * Math.cos(desiredAngle);
+        hvy = desiredForce * Math.sin(desiredAngle);
+      }
+      
+      mvx = 0, mvy = 0;
+      desiredX = x - agent.x;
+      desiredY = y - agent.y;
+      if(!(desiredX > radius || desiredY > radius || desiredY < -radius || desiredX < -radius)) {
+        desiredAngle = Math.atan2(desiredY,desiredX);
+        // desiredAngleB = Math.atan2(desiredBY,desiredBX);
+        desiredH = PY(desiredX,desiredY);
+        // desiredHB = PY(desiredBX,desiredBY);
+        desiredForce =  Math.max(0,Math.min(radius - desiredH,radius));
+        // desiredForceB =  Math.max(0,Math.min(radius - desiredHB,radius));
+        mvx = desiredForce * Math.cos(desiredAngle);
+        mvy = desiredForce * Math.sin(desiredAngle);
+      }
+      
+      vx = Math.round(mid((mvx + hvx) * 0.9, maxSpeed, -maxSpeed));
+      vy = Math.round(mid((mvy + hvy) * 0.9, maxSpeed, -maxSpeed));
+      vxList.push(vx);
+      vyList.push(vy);
     }
-    
-    mvx = 0, mvy = 0;
-    desiredX = x - agent.x;
-    desiredY = y - agent.y;
-    desiredBX = x - agent.bx;
-    desiredBY = y - agent.by;
-    if(!(desiredX > radius || desiredY > radius || desiredY < -radius || desiredX < -radius)) {
-      desiredAngle = Math.atan2(desiredY,desiredX);
-      // desiredAngleB = Math.atan2(desiredBY,desiredBX);
-      desiredH = PY(desiredX,desiredY);
-      // desiredHB = PY(desiredBX,desiredBY);
-      desiredForce =  Math.max(0,Math.min(radius - desiredH,radius));
-      // desiredForceB =  Math.max(0,Math.min(radius - desiredHB,radius));
-      mvx = desiredForce * Math.cos(desiredAngle);
-      mvy = desiredForce * Math.sin(desiredAngle);
-    }
-    
-    vx = Math.round(mid((mvx + hvx) * 0.9, maxSpeed, -maxSpeed));
-    vy = Math.round(mid((mvy + hvy) * 0.9, maxSpeed, -maxSpeed));
-
-    
+    let vx = vxList[0] + vxList[1];
+    let vy = vyList[0] + vyList[1];
+    console.log(vxList);
 
     if(vx != 0) {
       point.x += vx;
