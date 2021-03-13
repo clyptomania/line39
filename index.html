@@ -31,18 +31,17 @@ canvas.width = W;
 canvas.height = H;
 
 var exampleSocket = new WebSocket("ws://127.0.0.1:8123/kinect_position");
+// a message looks like this: "index,x0,y0,x1,y1,...,xn,yn"
 exampleSocket.onmessage = function (event) {
-    console.log(event.data.split(","));
-    const [i, ax, ay, bx, by] = event.data.split(",");
-    agentA = {
-      x: ax,
-      y: ay
+    const data = event.data.split(",");
+    agents = [];
+    for (let i=1; i<data.length; i+=2) {
+      let agent = {
+        x: data[i],
+        y: data[i+1]
+      }
+      agents.push(agent);
     }
-    agentB = {
-      x: bx,
-      y: by
-    }
-    agents = [agentA, agentB];
     console.log("Done");
 }
 
@@ -80,19 +79,11 @@ const fpsHelper = function(onSecond){
     }
 }
 
-// const agent = {
-//     x: W / 1,
-//     y: H / 1
-// }
 agents = [
-{
-    x: W / 1,
-    y: H / 1
-},
-{
-    x: W / 1,
-    y: H / 1
-}
+  {
+      x: W / 1,
+      y: H / 1
+  }
 ];
 
 
