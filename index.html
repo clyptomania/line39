@@ -189,9 +189,8 @@ function updateLine(line,homeX){
       vxList.push(vx);
       vyList.push(vy);
     }
-    let vx = vxList[0] + vxList[1];
-    let vy = vyList[0] + vyList[1];
-    console.log(vxList);
+    let vx = vxList.reduce((total, curVal) => total + curVal, 0);;
+    let vy = vyList.reduce((total, curVal) => total + curVal, 0);;
 
     if(vx != 0) {
       point.x += vx;
