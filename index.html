@@ -56,7 +56,7 @@ function mid(){
 
 
 // Pythagoras: Length of vector defined by x and y
-const PY = (x,y) => Math.sqrt(Math.pow(Math.abs(x),2) + Math.pow(Math.abs(y),2),2);
+const PY = (x,y) => Math.sqrt(Math.pow(Math.abs(x),2) + Math.pow(Math.abs(y),2));
 
 const fpsHelper = function(onSecond){
     let lastSec = Date.now();
@@ -80,17 +80,18 @@ const fpsHelper = function(onSecond){
     }
 }
 
-agents = [
-  {
-      x: W / 1,
-      y: H / 1
-  }
-];
-
 const mouse = {
   x: W / 2,
   y: H / 2
 }
+
+agents = [
+  {
+      x: W / 1,
+      y: H / 1
+  },
+  mouse
+];
 
 
 const config = {
@@ -101,6 +102,8 @@ const config = {
   showFPS: false,
   showPoints: false,
   maxSpeed: 30,
+  snapToHomePx: 2,
+  forceDamping: 1
 }
 window.onload = function(fa){
 var gui = new dat.GUI({ closed: false, name:"config" });
@@ -119,6 +122,8 @@ gui.add(config,"padding",0).step(1).onFinishChange(function(val){
 gui.add(config,"showFPS");
 gui.add(config,"showPoints");
 gui.add(config,"maxSpeed", 5, 100);
+gui.add(config,"snapToHomePx", 0, 10);
+gui.add(config,"forceDamping", 1, 10);
 
 
 }
@@ -191,10 +196,16 @@ function updateLine(line,homeX){
     let vy = vyList.reduce((total, curVal) => total + curVal, 0);
 
     if(vx != 0) {
-      point.x += vx;
+      point.x += vx/config.forceDamping;
     }
     if(vy != 0){
-      point.y += vy;
+      point.y += vy/config.forceDamping;
+    }
+    if (Math.abs(point.x-homeX) < config.snapToHomePx) {
+      point.x = homeX;
+    }
+    if (Math.abs(point.y-homeY) < config.snapToHomePx) {
+      point.y = homeY;
     }
     line[j] = point;
   }
@@ -276,7 +287,7 @@ function updateX(){
 }
 
 function init(){
-  
+
   if(rAF) {
     cancelAnimationFrame(rAF);
     rAF = null;
