@@ -25,8 +25,8 @@
 <script>
 let canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
-var W = 1080;
-var H = 1404;
+var W = 1200;
+var H = 1920;
 canvas.width = W;
 canvas.height = H;
 
@@ -36,16 +36,57 @@ exampleSocket.onmessage = function (event) {
     const data = event.data.split(",");
     agents = [];
     for (let i=1; i<data.length; i+=2) {
-      let agent = {
-        x: data[i],
-        y: data[i+1]
+      if (config.orientation == 1) {
+        // default orientation. No mapping required
+        let agent = {
+          x: data[i], // x (beamer)
+          y: data[i+1] // y (beamer)
+        }
+        agents.push(agent);
       }
-      agents.push(agent);
+      else if (config.orientation == 2) {
+        // 90 degree clockwise
+        let agent = {
+          x: mapHeighttoWidthReversed(data[i+1]),
+          y: mapWidthtoHeight(data[i])
+        }
+        agents.push(agent);
+      }
+      else if (config.orientation == 3) {
+        // 180 degree clockwise
+        let agent = {
+          x: W-data[i],
+          y: H-data[i+1]
+        }
+        agents.push(agent);
+      }
+      else if (config.orientation == 4) {
+        // 270 degree clockwise
+        let agent = {
+          x: mapHeighttoWidth(data[i+1]),
+          y: mapWidthtoHeightReversed(data[i])
+        }
+        agents.push(agent);
+      }
     }
     agents.push(mouse);
-    console.log("Done");
 }
 
+function mapWidthtoHeight(width) {
+  return width / W * H;
+}
+
+function mapWidthtoHeightReversed(width) {
+  return (1 - width / W) * H;
+}
+
+function mapHeighttoWidth(height) {
+  return height / H * W;
+}
+
+function mapHeighttoWidthReversed(height) {
+  return (1 - height / H) * W;
+}
 
 function mid(){
     const args = Array.from(arguments);
@@ -97,13 +138,14 @@ agents = [
 const config = {
   nPoints: 20,
   nLines: 39,
-  radius: 400,
+  radius: 200,
   padding: 0,
   showFPS: false,
   showPoints: false,
   maxSpeed: 30,
   snapToHomePx: 2,
-  forceDamping: 1
+  forceDamping: 1,
+  orientation: 1
 }
 window.onload = function(fa){
 var gui = new dat.GUI({ closed: false, name:"config" });
@@ -124,6 +166,7 @@ gui.add(config,"showPoints");
 gui.add(config,"maxSpeed", 5, 100);
 gui.add(config,"snapToHomePx", 0, 10);
 gui.add(config,"forceDamping", 1, 10);
+gui.add(config,"orientation", 1, 4).step(1);
 
 
 }
@@ -328,8 +371,8 @@ window.addEventListener('mousemove',(e)=>{
 });
 
 window.addEventListener('resize', (e) => {
-  W = 1080;
-  H = 1404;
+  W = 1200;
+  H = 1920;
   canvas.width = W;
   canvas.height = H;
   init();
