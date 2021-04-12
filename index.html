@@ -7,26 +7,23 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Line Thirty Nine by Annika Storch</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/lines.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css">
 
 </head>
     
-<body style="background-color: rgb(0, 0, 0);">
+<body style="overflow: hidden; scrollbar-width: none; background-color: rgb(0, 0, 0);">
  
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.5/lodash.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.3/dat.gui.min.js"></script>
+<script src="assets/js-libraries/dat.gui.min.js"></script>
+<script src="assets/js-libraries/jquery.js"></script>
+<script src="assets/js-libraries/lodash.js"></script>
 
 <canvas id="c"></canvas>
 
 <script>
 let canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
-var W = 1080;
-var H = 1404;
+var W = 1200;
+var H = 1920;
 canvas.width = W;
 canvas.height = H;
 
@@ -36,16 +33,57 @@ exampleSocket.onmessage = function (event) {
     const data = event.data.split(",");
     agents = [];
     for (let i=1; i<data.length; i+=2) {
-      let agent = {
-        x: data[i],
-        y: data[i+1]
+      if (config.orientation == 1) {
+        // default orientation. No mapping required
+        let agent = {
+          x: data[i]*W, // x (beamer)
+          y: data[i+1]*H // y (beamer)
+        }
+        agents.push(agent);
       }
-      agents.push(agent);
+      else if (config.orientation == 2) {
+        // 90 degree clockwise
+        let agent = {
+          x: mapHeighttoWidthReversed(data[i+1]),
+          y: mapWidthtoHeight(data[i])
+        }
+        agents.push(agent);
+      }
+      else if (config.orientation == 3) {
+        // 180 degree clockwise
+        let agent = {
+          x: (1-data[i])*W,
+          y: (1-data[i+1])*H
+        }
+        agents.push(agent);
+      }
+      else if (config.orientation == 4) {
+        // 270 degree clockwise
+        let agent = {
+          x: mapHeighttoWidth(data[i+1]),
+          y: mapWidthtoHeightReversed(data[i])
+        }
+        agents.push(agent);
+      }
     }
     agents.push(mouse);
-    console.log("Done");
 }
 
+function mapWidthtoHeight(width) {
+  return width * H;
+}
+
+function mapWidthtoHeightReversed(width) {
+  return (1 - width) * H;
+}
+
+function mapHeighttoWidth(height) {
+  return height * W;
+}
+
+function mapHeighttoWidthReversed(height) {
+  return (1 - height) * W;
+}
 
 function mid(){
     const args = Array.from(arguments);
@@ -56,7 +94,7 @@ function mid(){
 
 
 // Pythagoras: Length of vector defined by x and y
-const PY = (x,y) => Math.sqrt(Math.pow(Math.abs(x),2) + Math.pow(Math.abs(y),2),2);
+const PY = (x,y) => Math.sqrt(Math.pow(Math.abs(x),2) + Math.pow(Math.abs(y),2));
 
 const fpsHelper = function(onSecond){
     let lastSec = Date.now();
@@ -80,48 +118,55 @@ const fpsHelper = function(onSecond){
     }
 }
 
-agents = [
-  {
-      x: W / 1,
-      y: H / 1
-  }
-];
-
 const mouse = {
   x: W / 2,
   y: H / 2
 }
 
+agents = [
+  {
+      x: W / 1,
+      y: H / 1
+  },
+  mouse
+];
+
 
 const config = {
-  nPoints: 20,
+  nPoints: 50,
   nLines: 39,
-  radius: 400,
+  radius: 350,
   padding: 0,
   showFPS: false,
   showPoints: false,
-  maxSpeed: 30,
+  maxSpeed: 90,
+  snapToHomePx: 1,
+  forceDamping: 8,
+  orientation: 2
 }
-window.onload = function(fa){
-var gui = new dat.GUI({ closed: false, name:"config" });
-gui.add(config,"nPoints",3,50).step(1).onFinishChange(function(val){
-  debouncedInit();
-});
-gui.add(config,"nLines",3,50).step(1).onFinishChange(function(val){
-  console.log('finish',val,config)
-  debouncedInit();
-});;
-gui.add(config,"radius",50,2000).step(1);
-gui.add(config,"padding",0).step(1).onFinishChange(function(val){
-  console.log(val)
-  debouncedUpdateX();
-});
-gui.add(config,"showFPS");
-gui.add(config,"showPoints");
-gui.add(config,"maxSpeed", 5, 100);
+// window.onload = function(fa){
+// var gui = new dat.GUI({ closed: false, name:"config" });
+// gui.add(config,"nPoints",3,50).step(1).onFinishChange(function(val){
+//   debouncedInit();
+// });
+// gui.add(config,"nLines",3,50).step(1).onFinishChange(function(val){
+//   console.log('finish',val,config)
+//   debouncedInit();
+// });;
+// gui.add(config,"radius",50,2000).step(1);
+// gui.add(config,"padding",0).step(1).onFinishChange(function(val){
+//   console.log(val)
+//   debouncedUpdateX();
+// });
+// gui.add(config,"showFPS");
+// gui.add(config,"showPoints");
+// gui.add(config,"maxSpeed", 5, 100);
+// gui.add(config,"snapToHomePx", 0, 10);
+// gui.add(config,"forceDamping", 1, 10);
+// gui.add(config,"orientation", 1, 4).step(1);
 
 
-}
+// }
 let pointsPerLine = 20;
 let linesInScreen = 20;
 let lines = [];
@@ -191,10 +236,16 @@ function updateLine(line,homeX){
     let vy = vyList.reduce((total, curVal) => total + curVal, 0);
 
     if(vx != 0) {
-      point.x += vx;
+      point.x += vx/config.forceDamping;
     }
     if(vy != 0){
-      point.y += vy;
+      point.y += vy/config.forceDamping;
+    }
+    if (Math.abs(point.x-homeX) < config.snapToHomePx) {
+      point.x = homeX;
+    }
+    if (Math.abs(point.y-homeY) < config.snapToHomePx) {
+      point.y = homeY;
     }
     line[j] = point;
   }
@@ -276,7 +327,7 @@ function updateX(){
 }
 
 function init(){
-  
+
   if(rAF) {
     cancelAnimationFrame(rAF);
     rAF = null;
@@ -317,8 +368,6 @@ window.addEventListener('mousemove',(e)=>{
 });
 
 window.addEventListener('resize', (e) => {
-  W = 1080;
-  H = 1404;
   canvas.width = W;
   canvas.height = H;
   init();
