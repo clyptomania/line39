@@ -299,6 +299,11 @@ function timer(){
     }
 
     }
+    // Keep at least one agent in the list (out of bounds) so that the animation does not freeze
+    agents = [{
+      x: -10*W,
+      y: -10*H
+    }]
   rAF = requestAnimationFrame(timer)
 
 }
