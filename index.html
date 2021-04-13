@@ -66,7 +66,7 @@ exampleSocket.onmessage = function (event) {
         agents.push(agent);
       }
     }
-    agents.push(mouse);
+    // agents.push(mouse);
 }
 
 function mapWidthtoHeight(width) {
@@ -118,17 +118,17 @@ const fpsHelper = function(onSecond){
     }
 }
 
-const mouse = {
-  x: W / 2,
-  y: H / 2
-}
+// const mouse = {
+//   x: W / 2,
+//   y: H / 2
+// }
 
 agents = [
-  {
-      x: W / 1,
-      y: H / 1
-  },
-  mouse
+  // {
+  //     x: W / 1,
+  //     y: H / 1
+  // },
+  // mouse
 ];
 
 
@@ -193,10 +193,10 @@ function updateLine(line,homeX){
   for(var j = line.length - 1; j >= 0; j--){
     let vxList = [];
     let vyList = [];
+    point = line[j];
     for(let i = 0; i<agents.length; i++) {
       let agent = agents[i];
       let vx, vy;
-      point = line[j];
       x = point.x;
       y = point.y;
       hvx = 0, hvy = 0;
@@ -299,6 +299,11 @@ function timer(){
     }
 
     }
+    // Keep at least one agent in the list (out of bounds) so that the animation does not freeze
+    agents = [{
+      x: -10*W,
+      y: -10*H
+    }]
   rAF = requestAnimationFrame(timer)
 
 }
@@ -362,10 +367,10 @@ const debouncedInit = _.debounce(init, 200)
 const debouncedUpdateX = _.debounce(updateX, 200)
 
 
-window.addEventListener('mousemove',(e)=>{
- mouse.x = e.clientX;
- mouse.y = e.clientY;
-});
+// window.addEventListener('mousemove',(e)=>{
+//  mouse.x = e.clientX;
+//  mouse.y = e.clientY;
+// });
 
 window.addEventListener('resize', (e) => {
   canvas.width = W;
